@@ -61,7 +61,7 @@ class Particle(Agent):
         self.fitness = self._get_fitness(self.space_position)
 
         # Update particular best fitness
-        if self.fitness <= self.best_fitness:
+        if self.fitness < self.best_fitness:
             self.best_position = self.space_position
             self.best_fitness = self.fitness
 

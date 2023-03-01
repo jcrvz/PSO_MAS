@@ -33,7 +33,7 @@ def pso_portrayal(agent):
 
 NUM_AGENTS = 20
 MAX_ITERATIONS = 10000
-LENGTH = 100
+LENGTH = 125
 
 model_params = dict(
     problem=Sphere(),
