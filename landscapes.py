@@ -8,7 +8,7 @@ class _BasicProblem:
     This is the basic class for a generic optimisation problem.
     """
 
-    def __init__(self, variable_num=2):
+    def __init__(self, variable_num):
         """
         Initialise a problem object using only the dimensionality of its domain.
 
@@ -45,7 +45,7 @@ class _BasicProblem:
             self.span_search_range = self.max_search_range - self.min_search_range
             self.centre_search_range = 0.5 * (self.max_search_range + self.min_search_range)
 
-    def get_landscape(self, samples_per_dimension=50) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def get_landscape(self, samples_per_dimension=50) -> np.ndarray:
         x = np.linspace(self.min_search_range[0], self.max_search_range[0],
                         samples_per_dimension)
         y = np.linspace(self.min_search_range[1], self.max_search_range[1],
@@ -65,12 +65,14 @@ class _BasicProblem:
             matrix_z.append(z)
         matrix_z = np.array(matrix_z)
 
-        return matrix_x, matrix_y, matrix_z
+        return matrix_z
 
     def rescale_from_space(self, position: np.ndarray | list | tuple) -> np.ndarray:
+        # From [-1, 1] to [x_min, x_max]
         return 0.5 * np.array(position) * self.span_search_range + self.centre_search_range
 
     def rescale_to_space(self, position: np.ndarray | list | tuple) -> np.ndarray:
+        # From [x_min, x_max] to [-1, 1]
         return 2 * (np.array(position) - self.centre_search_range) / self.span_search_range
 
     def get_function_value(self, variables) -> float:
@@ -78,7 +80,7 @@ class _BasicProblem:
 
 
 class Sphere(_BasicProblem):
-    def __init__(self, variable_num):
+    def __init__(self, variable_num=2):
         super().__init__(variable_num)
         self.variable_num = variable_num
         self.set_boundaries([-100.] * self.variable_num, [100.] * self.variable_num)
@@ -99,7 +101,7 @@ class Sphere(_BasicProblem):
 
 
 class Rastrigin(_BasicProblem):
-    def __init__(self, variable_num):
+    def __init__(self, variable_num=2):
         super().__init__(variable_num)
         self.variable_num = variable_num
         self.set_boundaries([-5.12] * self.variable_num, [5.12] * self.variable_num)
