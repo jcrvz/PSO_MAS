@@ -33,10 +33,11 @@ class _BasicProblem:
                          'Convex': True}
 
     def set_boundaries(self, min_search_range=None, max_search_range=None) -> None:
-        if not self.min_search_range == min_search_range:
+        if min_search_range is not None:
             self.min_search_range = np.array(min_search_range) if isinstance(
                 min_search_range, list) else min_search_range
-        if not self.max_search_range == max_search_range:
+
+        if max_search_range is not None:
             self.max_search_range = np.array(max_search_range) if isinstance(
                 max_search_range, list) else max_search_range
 
@@ -73,7 +74,7 @@ class _BasicProblem:
         return 2 * (np.array(position) - self.centre_search_range) / self.span_search_range
 
     def get_function_value(self, variables) -> float:
-        pass
+        return np.nan
 
 
 class Sphere(_BasicProblem):
