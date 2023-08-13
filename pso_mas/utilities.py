@@ -2,7 +2,7 @@
 Modular Canvas Rendering
 ========================
 
-Module for visualizing model objects in grid cells.
+Module for visualizing model objects in space cells.
 
 """
 from collections import defaultdict
@@ -55,8 +55,8 @@ class CanvasSpace(VisualizationElement):
     Attributes:
         portrayal_method: Function which generates portrayals from objects, as
                           described above.
-        grid_height, grid_width: Size of the grid to visualize, in cells.
-        canvas_height, canvas_width: Size, in pixels, of the grid visualization
+        grid_height, grid_width: Size of the space to visualize, in cells.
+        canvas_height, canvas_width: Size, in pixels, of the space visualization
                                      to draw on the client.
         template: "canvas_module.html" stores the module's HTML template.
 
@@ -75,9 +75,9 @@ class CanvasSpace(VisualizationElement):
         """Instantiate a new CanvasGrid.
 
         Args:
-            portrayal_method: function to convert each object on the grid to
+            portrayal_method: function to convert each object on the space to
                               a portrayal, as described above.
-            grid_width, grid_height: Size of the grid, in cells.
+            grid_width, grid_height: Size of the space, in cells.
             canvas_height, canvas_width: Size of the canvas to draw in the
                                          client, in pixels. (default: 500x500)
 
@@ -96,9 +96,9 @@ class CanvasSpace(VisualizationElement):
 
     def render(self, model):
         grid_state = defaultdict(list)
-        for x in range(model.grid.width):
-            for y in range(model.grid.height):
-                cell_objects = model.grid.get_cell_list_contents([(x, y)])
+        for x in range(model.space.width):
+            for y in range(model.space.height):
+                cell_objects = model.space.get_cell_list_contents([(x, y)])
                 for obj in cell_objects:
                     portrayal = self.portrayal_method(obj)
                     if portrayal:

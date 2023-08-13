@@ -1,6 +1,6 @@
 import numpy as np
 
-__all__ = ['Sphere', 'Rastrigin']
+__all__ = ['Sphere', 'Rastrigin', 'Stochastic']
 
 
 class _BasicProblem:
@@ -45,38 +45,47 @@ class _BasicProblem:
             self.span_search_range = self.max_search_range - self.min_search_range
             self.centre_search_range = 0.5 * (self.max_search_range + self.min_search_range)
 
-    def get_landscape(self, samples_per_dimension=50) -> np.ndarray:
-        x = np.linspace(self.min_search_range[0], self.max_search_range[0],
+    def get_landscape(self, samples_per_dimension=100) -> dict:
+        epsilon = 10 ** (-np.log(samples_per_dimension))
+        x = np.linspace(self.min_search_range[0] + epsilon, self.max_search_range[0] - epsilon,
                         samples_per_dimension)
-        y = np.linspace(self.min_search_range[1], self.max_search_range[1],
+        y = np.linspace(self.min_search_range[1] + epsilon, self.max_search_range[1] - epsilon,
                         samples_per_dimension)
 
-        # Create the grid matrices
+        # Create the space matrices
         matrix_x, matrix_y = np.meshgrid(x, y)
 
-        # Evaluate each node of the grid into the problem function
+        # Evaluate each node of the space into the problem function
         matrix_z = []
+        landscape = dict()
         for xy_list in zip(matrix_x, matrix_y):
             z = []
             for xy_input in zip(xy_list[0], xy_list[1]):
                 tmp = list(xy_input)
                 tmp.extend(list(self.optimal_solution[2:self.variable_num]))
-                z.append(self.get_function_value(np.array(tmp)))
+                array_tmp = np.array(tmp)
+                z_value = self.eval_function(array_tmp)
+                z.append(z_value)
+
+                landscape[tuple(self.rescale_to_space(array_tmp))] = z_value
             matrix_z.append(z)
         matrix_z = np.array(matrix_z)
 
-        return matrix_z
+        return landscape, matrix_z
 
-    def rescale_from_space(self, position: np.ndarray | list | tuple) -> np.ndarray:
+    def rescale_from_space(self, position) -> np.ndarray:
         # From [-1, 1] to [x_min, x_max]
         return 0.5 * np.array(position) * self.span_search_range + self.centre_search_range
 
-    def rescale_to_space(self, position: np.ndarray | list | tuple) -> np.ndarray:
+    def rescale_to_space(self, position) -> np.ndarray:
         # From [x_min, x_max] to [-1, 1]
         return 2 * (np.array(position) - self.centre_search_range) / self.span_search_range
 
-    def get_function_value(self, variables) -> float:
+    def eval_function(self, variables) -> float:
         return np.nan
+
+    def get_function_value(self, variables) -> float:
+        return self.eval_function(self.rescale_to_space(variables))
 
 
 class Sphere(_BasicProblem):
@@ -87,17 +96,23 @@ class Sphere(_BasicProblem):
         self.optimal_solution = np.array([0.] * self.variable_num)
         self.global_optimum_solution = 0.
         self.func_name = 'Sphere'
-        self.features = {'Continuous': True,
-                         'Differentiable': True,
-                         'Separable': True,
-                         'Scalable': True,
-                         'Unimodal': True,
-                         'Convex': True}
 
-        self.landscape = self.get_landscape()
-
-    def get_function_value(self, variables):
+    def eval_function(self, variables):
         return np.sum(np.square(variables))
+
+
+class Stochastic(_BasicProblem):
+    def __init__(self, variable_num):
+        super().__init__(variable_num)
+        self.variable_num = variable_num
+        self.set_boundaries([-50.] * self.variable_num, [50.] * self.variable_num)
+        self.optimal_solution = 1. / (np.arange(self.variable_num) + 1.)
+        self.global_optimum_solution = 0.
+        self.func_name = 'Stochastic'
+
+    def eval_function(self, variables):
+        return np.sum(np.random.rand(self.variable_num) * abs(variables - 1. / (
+                np.arange(self.variable_num) + 1.)))
 
 
 class Rastrigin(_BasicProblem):
@@ -105,20 +120,10 @@ class Rastrigin(_BasicProblem):
         super().__init__(variable_num)
         self.variable_num = variable_num
         self.set_boundaries([-5.12] * self.variable_num, [5.12] * self.variable_num)
-        self.max_search_range = np.array([5.12] * self.variable_num)
-        self.min_search_range = np.array([-5.12] * self.variable_num)
         self.optimal_solution = np.array([0.] * self.variable_num)
         self.global_optimum_solution = 0.
         self.func_name = 'Rastrigin'
-        self.features = {'Continuous': True,
-                         'Differentiable': True,
-                         'Separable': True,
-                         'Scalable': True,
-                         'Unimodal': False,
-                         'Convex': False}
 
-        self.landscape = self.get_landscape()
-
-    def get_function_value(self, variables):
+    def eval_function(self, variables):
         return 10. * self.variable_num + np.sum(
             np.square(variables) - 10. * np.cos(2. * np.pi * variables))
