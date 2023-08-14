@@ -1,6 +1,6 @@
 import numpy as np
 
-__all__ = ['Sphere', 'Rastrigin', 'Stochastic']
+__all__ = ['Sphere', 'Rastrigin', 'Weierstrass']
 
 
 class _BasicProblem:
@@ -92,7 +92,7 @@ class Sphere(_BasicProblem):
     def __init__(self, variable_num=2):
         super().__init__(variable_num)
         self.variable_num = variable_num
-        self.set_boundaries([-100.] * self.variable_num, [100.] * self.variable_num)
+        self.set_boundaries([-10.] * self.variable_num, [10.] * self.variable_num)
         self.optimal_solution = np.array([0.] * self.variable_num)
         self.global_optimum_solution = 0.
         self.func_name = 'Sphere'
@@ -101,18 +101,20 @@ class Sphere(_BasicProblem):
         return np.sum(np.square(variables))
 
 
-class Stochastic(_BasicProblem):
+class Weierstrass(_BasicProblem):
     def __init__(self, variable_num):
         super().__init__(variable_num)
-        self.variable_num = variable_num
-        self.set_boundaries([-50.] * self.variable_num, [50.] * self.variable_num)
-        self.optimal_solution = 1. / (np.arange(self.variable_num) + 1.)
+        self.set_boundaries([-20.] * self.variable_num, [1.] * self.variable_num)
+        self.optimal_solution = np.array([0.] * self.variable_num)
         self.global_optimum_solution = 0.
-        self.func_name = 'Stochastic'
+        self.func_name = 'Weierstrass'
 
-    def eval_function(self, variables):
-        return np.sum(np.random.rand(self.variable_num) * abs(variables - 1. / (
-                np.arange(self.variable_num) + 1.)))
+    def eval_function(self, variables, kmax=20, a=0.5, b=3., *args):
+        x = np.outer(variables + 0.5, np.ones(kmax + 1))
+        k = np.outer(np.ones(self.variable_num), np.arange(kmax + 1))
+        return np.sum(np.sum(np.power(a, k) * np.cos(2. * np.pi * np.power(b, k) * x), 1)
+                      - self.variable_num * np.sum(
+            np.power(a, k) * np.cos(np.pi * np.power(b, k)), 1))
 
 
 class Rastrigin(_BasicProblem):

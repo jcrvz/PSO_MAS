@@ -7,7 +7,7 @@ import matplotlib as mlp
 
 def get_rgb_color(z_val, z_min, z_max):
     z_adjusted = (z_val - z_min) / (z_max - z_min)
-    return mlp.colors.to_hex(mlp.cm.rainbow(z_adjusted))
+    return mlp.colors.to_hex(mlp.cm.GnBu_r(z_adjusted))
 
 
 def pso_portrayal(agent):
@@ -22,10 +22,10 @@ def pso_portrayal(agent):
 
     if isinstance(agent, Particle):
         portrayal = {"Shape": "circle", "r": 3, "Filled": "true", "Layer": 1}
-        if agent.kind == "worst":
-            portrayal["Color"] = "#0000FF"
+        if agent.kind == "particular_best":
+            portrayal["Color"] = "red"
         elif agent.kind == "best":
-            portrayal["Color"] = "#D847FF"
+            portrayal["Color"] = "yellow"
         else:  # regular
             portrayal["Color"] = "black"
 
@@ -54,8 +54,34 @@ model_params = {
     "problem": mesa.visualization.Choice(
         "Problem to Solve",
         "Sphere",
-        ["Sphere", "Rastrigin", "Stochastic"],
+        ["Sphere", "Rastrigin", "Weierstrass"],
         "Selecciona el problema a resolver"
+    ),
+    "pso_variant": mesa.visualization.Choice(
+        "Variante de PSO", "Inertial",
+        ["Inertial", "Constriction"],
+        "Se activa la variante de PSO"
+    ),
+    "velocity_coefficient": mesa.visualization.NumberInput(
+        "Coef. de Inercia/Constricción", 0.6,
+        "Indica el valor del coeficiente relacionado con la variante de PSO"
+    ),
+    "self_confidence": mesa.visualization.NumberInput(
+        "Coef. de Confianza Propia", 1.56,
+        "Indica el valor del coeficiente de confianza propia"
+    ),
+    "swarm_confidence": mesa.visualization.NumberInput(
+        "Coef. de Confianza en el Enjambre", 1.56,
+        "Indica el valor del coeficiente de confianza en el enjambre"),
+    "greedy_selection": mesa.visualization.Choice(
+        "Mecanismo de Selección", "Direct",
+        ["Direct", "Greedy"],
+        "Se activa la selección greedy, es decir, solo acepta soluciones que mejoran"
+    ),
+    "operator": mesa.visualization.Choice(
+        "Operator", "Particle Swarm",
+        ["Particle Swarm", "Spiral"],
+        "Se selecciona el tipo de perturbaciones"
     ),
     "muestras_por_dim": mesa.visualization.Slider(
         "Muestras por Dimensións",
@@ -65,30 +91,17 @@ model_params = {
         10,
         description="Escoge cuántas muestras por dimensión usar para ver el panorama",
     ),
-    "inertia_coefficient": mesa.visualization.NumberInput(
-        "Coef. de Inercia", 0.7,
-        "Indica el valor del coeficiente de inercia"
-    ),
-    "self_confidence": mesa.visualization.NumberInput(
-        "Coef. de Confianza Propia", 2.54,
-        "Indica el valor del coeficiente de confianza propia"
-    ),
-    "swarm_confidence": mesa.visualization.NumberInput(
-        "Coef. de Confianza en el Enjambre", 2.56,
-        "Indica el valor del coeficiente de confianza en el enjambre"),
 }
 
 canvas_element = SimpleCanvas(pso_portrayal, 500, 500)
 best_evolution = mesa.visualization.ChartModule(
-    [{"Label": "Best Fitness", "Color": "#AA0000", "label": "best", "y_tick_scale": "log"}],
-    canvas_height=50, canvas_width=200)
-#worst_evolution = mesa.visualization.ChartModule(
-#    [{"Label": "Worst Fitness", "Color": "#00AA00", 'label': "worst"}],
-#    canvas_height=50, canvas_width=200)
+    [{"Label": "Best Fitness", "Color": "blue", "label": "Best"}])
+avg_evolution = mesa.visualization.ChartModule(
+    [{"Label": "Avg. Fitness", "Color": "red", "label": "Average"}])
 
 server = mesa.visualization.ModularServer(
     model_cls=PSO,
-    visualization_elements=[canvas_element, best_evolution],
+    visualization_elements=[canvas_element, best_evolution, avg_evolution],
     name="PSO MAS", model_params=model_params, port=8521
 )
 server.max_steps = MAX_ITERATIONS
